@@ -2,71 +2,1036 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Bowman Courier Editor</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/lucide@0.472.0/dist/umd/lucide.js"></script>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Bowman Newspaper Editor (Standalone)</title>
 <style>
-  body { background-color: #fafafa; }
-  .card { @apply bg-white border border-neutral-200 rounded-2xl shadow-sm; }
-  .btn {
-    @apply inline-flex items-center justify-center rounded-xl text-sm font-medium px-3 py-2
-           bg-neutral-900 text-white hover:bg-neutral-700 active:bg-neutral-800;
+  :root {
+    --bg: #f5f5f5;
+    --panel: #ffffff;
+    --border: #d0d0d0;
+    --text-main: #1a1a1a;
+    --text-dim: #666;
+    --accent: #283D3B;
+    --radius-lg: 16px;
+    --radius-sm: 10px;
+    --mono-bg: #1a1a1a;
+    --mono-fg: #f5f5f5;
   }
-  .btn-secondary {
-    @apply bg-neutral-100 text-neutral-900 hover:bg-neutral-200 active:bg-neutral-300;
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text-main);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Inter", Roboto, "Segoe UI", sans-serif;
+    line-height: 1.4;
   }
-  .btn-outline {
-    @apply border border-neutral-300 bg-white text-neutral-900 hover:bg-neutral-50;
+
+  header {
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
   }
-  .btn-icon {
-    @apply w-8 h-8 inline-flex items-center justify-center rounded-lg border border-transparent
-           hover:bg-neutral-100 active:bg-neutral-200;
+
+  header h1 {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0;
+    color: var(--accent);
   }
-  .btn-danger {
-    @apply bg-red-600 text-white hover:bg-red-500 active:bg-red-700;
+
+  button {
+    background: #1f1f1f;
+    color: #fff;
+    border: 0;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    line-height: 1.2;
+    padding: 8px 10px;
+    cursor: pointer;
   }
-  .input, .textarea, .select, .date {
-    @apply w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm
-           text-neutral-900 placeholder-neutral-400 focus:outline-none
-           focus:ring-2 focus:ring-neutral-800;
+
+  button.secondary {
+    background: #e5e5e5;
+    color: #1a1a1a;
   }
-  .label {
-    @apply text-xs font-medium text-neutral-700;
+
+  button.danger {
+    background: #c62828;
+    color: #fff;
   }
-  .separator {
-    @apply w-px h-6 bg-neutral-300;
+
+  button.small {
+    font-size: 12px;
+    padding: 5px 8px;
   }
-  .checkbox {
-    @apply w-4 h-4 rounded border border-neutral-400 text-neutral-900 flex items-center justify-center cursor-pointer;
+
+  main {
+    padding: 16px;
+    display: grid;
+    grid-template-columns: minmax(240px, 320px) 1fr;
+    gap: 16px;
   }
-  .checkbox[data-checked="true"] {
-    background-color: rgb(23 23 23);
-    color: white;
-    border-color: rgb(23 23 23);
+
+  @media (max-width: 900px) {
+    main {
+      grid-template-columns: 1fr;
+    }
   }
-  .pill-featured {
-    @apply inline-flex items-center gap-1 text-[11px] font-medium text-yellow-600 bg-yellow-100 px-2 py-0.5 rounded-lg;
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 10px 30px rgb(0 0 0 / 0.04);
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
   }
-  pre::-webkit-scrollbar,
-  .scrolly::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+
+  .panel-header {
+    padding: 16px;
+    padding-bottom: 8px;
   }
-  pre::-webkit-scrollbar-thumb,
-  .scrolly::-webkit-scrollbar-thumb {
-    background: #666;
-    border-radius: 9999px;
+
+  .panel-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 4px 0;
   }
+
+  .panel-sub {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin: 0;
+  }
+
+  .panel-body {
+    padding: 16px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+  }
+
+  .article-list {
+    max-height: 60vh;
+    overflow-y: auto;
+    border-top: 1px solid var(--border);
+  }
+
+  .article-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    cursor: pointer;
+  }
+
+  .article-row.active,
+  .article-row:hover {
+    background: #f0f0f0;
+  }
+
+  .article-meta {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .article-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-main);
+    line-height: 1.3;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+
+  .article-line2 {
+    font-size: 12px;
+    color: var(--text-dim);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+
+  .article-line3 {
+    font-size: 11px;
+    color: var(--text-dim);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+
+  .row-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .row-buttons button {
+    width: 28px;
+    height: 24px;
+    padding: 0;
+    font-size: 11px;
+    line-height: 24px;
+    border-radius: 6px;
+  }
+
+  .field-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 16px;
+  }
+
+  @media (max-width: 600px) {
+    .field-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 13px;
+  }
+
+  .field label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-main);
+  }
+
+  .field-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+
+  input[type="text"],
+  input[type="date"],
+  textarea,
+  select {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: #fff;
+    font-size: 13px;
+    padding: 7px 8px;
+    line-height: 1.4;
+    color: var(--text-main);
+    font-family: inherit;
+  }
+
+  input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+  }
+
+  textarea {
+    min-height: 60px;
+    resize: vertical;
+  }
+
+  .inline-images-block {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 12px;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .inline-image-row {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 8px;
+  }
+
+  @media (max-width: 700px) {
+    .inline-image-row {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .content-editor textarea {
+    min-height: 200px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 13px;
+  }
+
+  .controls-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  .json-preview {
+    background: var(--mono-bg);
+    color: var(--mono-fg);
+    border-radius: var(--radius-lg);
+    font-size: 12px;
+    line-height: 1.4;
+    padding: 12px;
+    max-height: 240px;
+    overflow: auto;
+    white-space: pre;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+
+  footer {
+    font-size: 11px;
+    color: var(--text-dim);
+    text-align: center;
+    padding: 24px 16px;
+  }
+
 </style>
 </head>
-<body class="p-4 flex flex-col gap-4 text-neutral-900">
-<!-- body content omitted for brevity in this saved file -->
-<p class="text-sm text-neutral-700">
-This is the standalone Bowman Courier Editor you asked for. 
-Please paste the full HTML from chat into this file in your repo for production use.
-</p>
+<body>
+
+<header>
+  <h1>Bowman Newspaper Editor</h1>
+  <button id="btnNew">New Article</button>
+  <button class="secondary" id="btnDuplicate">Duplicate</button>
+  <button class="secondary" id="btnDelete">Delete</button>
+
+  <span style="width:1px;align-self:stretch;background:var(--border);margin:0 8px;"></span>
+
+  <button class="secondary" id="btnCopyJSON">Copy JSON</button>
+  <button class="secondary" id="btnDownloadJSON">Download JSON</button>
+
+  <label style="font-size:12px;display:flex;align-items:center;gap:4px;">
+    <input type="checkbox" id="chkPlain" />
+    Export content as plain text
+  </label>
+</header>
+
+<main>
+  <!-- LEFT: article list -->
+  <section class="panel" style="min-height:300px;">
+    <div class="panel-header">
+      <div class="panel-title">Articles</div>
+      <div class="panel-sub">Search, filter, reorder</div>
+    </div>
+    <div class="panel-body" style="border-top:0;padding-top:0;">
+      <div class="field" style="margin-bottom:8px;">
+        <input id="searchInput" type="text" placeholder="Search title/author/summary..." />
+      </div>
+
+      <div class="field">
+        <label>Category Filter</label>
+        <select id="filterCategory">
+          <option value="ALL">All</option>
+          <option>Campus Life</option>
+          <option>Sports</option>
+          <option>Arts & Culture</option>
+          <option>Academics</option>
+          <option>Opinion</option>
+          <option>News</option>
+          <option>Community</option>
+          <option>Features</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="article-list" id="articleList"></div>
+  </section>
+
+  <!-- RIGHT: editor -->
+  <section class="panel" style="min-height:300px;">
+    <div class="panel-header">
+      <div class="panel-title">Editor</div>
+      <div class="panel-sub" id="noSelectionNote" style="display:none;">Select an article to edit.</div>
+    </div>
+    <div class="panel-body" id="editorArea">
+      <!-- will be filled by JS -->
+    </div>
+  </section>
+</main>
+
+<section class="panel" style="margin:16px;">
+  <div class="panel-header">
+    <div class="panel-title">Live JSON Preview</div>
+  </div>
+  <div class="panel-body" style="border-top:0;">
+    <div class="json-preview" id="jsonPreview"></div>
+  </div>
+</section>
+
+<footer>
+  Built for school newspapers. Inline image tokens like &lt;image-1&gt; are supported in content.
+</footer>
+
+<script>
+(function () {
+  // --------------------------
+  // Data model + helpers
+  // --------------------------
+
+  let articles = [];
+  let selectedId = null;
+
+  const CATEGORY_OPTIONS = [
+    "Campus Life",
+    "Sports",
+    "Arts & Culture",
+    "Academics",
+    "Opinion",
+    "News",
+    "Community",
+    "Features",
+  ];
+
+  const ACCENT_OPTIONS = [
+    "text-bowman-highlight",
+    "text-bowman-secondary",
+    "text-bowman-accent",
+  ];
+
+  const BORDER_OPTIONS = [
+    "border-bowman-secondary/30",
+    "border-bowman-highlight/30",
+    "border-bowman-accent/30",
+  ];
+
+  function formatPrettyDate(dateObj) {
+    // returns "Oct 27, 2025"
+    try {
+      const d = (dateObj instanceof Date) ? dateObj : new Date(dateObj);
+      return d.toLocaleString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric"
+      });
+    } catch {
+      return "";
+    }
+  }
+
+  function nextId(arr) {
+    if (!arr.length) return 1;
+    return Math.max.apply(null, arr.map(a => a.id)) + 1;
+  }
+
+  function stripHtml(html) {
+    // In this plain version, content is already plain text.
+    // Keeping function for parity.
+    return html;
+  }
+
+  function toExportArray(asPlainText) {
+    return articles.map(a => {
+      return {
+        ...a,
+        content: asPlainText ? stripHtml(a.content) : a.content,
+      };
+    });
+  }
+
+  function looksLikeArticle(a) {
+    const req = [
+      "id","isFeatured","category","title","author","date","summary","image",
+      "accentColorClass","borderColorClass","inlineImages","content"
+    ];
+    return a &&
+      req.every(k => Object.prototype.hasOwnProperty.call(a,k)) &&
+      typeof a.id === "number" &&
+      typeof a.title === "string";
+  }
+
+  function getExampleArticles() {
+    return [
+      {
+        "id": 1,
+        "isFeatured": true,
+        "category": "Campus Life",
+        "title": "Debate Team Wins State Championship",
+        "author": "Jane Doe",
+        "date": "Oct 25, 2025",
+        "summary": "After months of rigorous practice, the Bowman High Debate Team secured a hard-fought victory at the state finals, bringing home the trophy for the first time in school history.",
+        "image": "https://placehold.co/800x600/EDDDD4/283D3B?text=DEBATE+WINS",
+        "accentColorClass": "text-bowman-highlight",
+        "borderColorClass": "border-bowman-secondary/30",
+        "inlineImages": [
+          {
+            "url": "https://placehold.co/800x450/772E25/EDDDD4?text=Team+Photo",
+            "caption": "The victorious debate team holding their championship trophy."
+          }
+        ],
+        "content": "The air was thick with anticipation as the final round of the state debate championship began. Representing Bowman High, seniors Jane Doe and Mark Smith faced off against their rivals from Lincoln High in a tense policy debate on renewable energy.\n\nTheir arguments, honed over countless hours of practice, were precise and compelling. The judges commended their 'masterful use of evidence and persuasive rhetoric.'\n\n<image-1>\n\nWhen the verdict was announced, the Bowman contingent erupted in cheers. 'This is a dream come true,' said team captain Jane Doe. 'It's a testament to every person on this team and the endless support from our coach.' This victory marks a new era for the school's forensic program, promising a bright future for aspiring debaters."
+      },
+      {
+        "id": 2,
+        "isFeatured": false,
+        "category": "Sports",
+        "title": "Football Team Dominates Season Opener",
+        "author": "John Smith",
+        "date": "Oct 24, 2025",
+        "summary": "The Bowman Bears delivered a stunning 35-7 performance in the pre-season opener, signaling a promising season ahead.",
+        "image": "https://placehold.co/600x400/197278/EDDDD4?text=FOOTBALL",
+        "accentColorClass": "text-bowman-secondary",
+        "borderColorClass": "border-bowman-secondary/30",
+        "inlineImages": [],
+        "content": "The Bowman Bears delivered a stunning 35-7 performance in the pre-season opener. From the first whistle, the team showed incredible cohesion and strength. Quarterback Michael Lee threw for three touchdowns, connecting twice with wide receiver-star, David Chen, for impressive gains.\n\nThe defense was equally formidable, holding the Lincoln Lions to just one touchdown in the final quarter. Coach Miller praised the team's 'unwavering focus and off-season dedication.' Fans are hopeful this momentum will carry them deep into the playoffs."
+      },
+      {
+        "id": 3,
+        "isFeatured": false,
+        "category": "Arts & Culture",
+        "title": "Drama Club's 'Our Town' A Poignant Success",
+        "author": "Alex Johnson",
+        "date": "Oct 23, 2025",
+        "summary": "The Drama Club's interpretation of the Thornton Wilder classic offered fresh perspectives on life, love, and loss, leaving the audience deeply moved.",
+        "image": "https://placehold.co/600x400/C44536/EDDDD4?text=THEATRE",
+        "accentColorClass": "text-bowman-highlight",
+        "borderColorClass": "border-bowman-highlight/30",
+        "inlineImages": [],
+        "content": "The Drama Club's rendition of 'Our Town' was a profound and moving experience. The minimalist set design placed the focus squarely on the actors' performances, and they delivered with remarkable depth.\n\nSarah Jenkins, as Emily Webb, was a standout, capturing the character's journey with a nuance that belied her age. The final act was particularly powerful, leaving few dry eyes in the auditorium. Director Ms. Alvarez has once again guided her students to create a piece of theatre that is both timeless and deeply personal."
+      },
+      {
+        "id": 4,
+        "isFeatured": true,
+        "category": "Academics",
+        "title": "New STEM Lab Opens",
+        "author": "Jane Doe",
+        "date": "Oct 22, 2025",
+        "summary": "Thanks to a generous grant, the new Bowman STEM lab is officially open, featuring 3D printers, robotics kits, and a state-of-the-art chemistry station.",
+        "image": "https://placehold.co/800x600/283D3B/EDDDD4?text=STEM+LAB",
+        "accentColorClass": "text-bowman-accent",
+        "borderColorClass": "border-bowman-accent/30",
+        "inlineImages": [],
+        "content": "The ribbon-cutting ceremony for the new STEM lab was a celebration of the future. Principal Davies called it 'a quantum leap forward for our curriculum.' Students in the robotics club are already at work, programming autonomous vehicles for an upcoming competition.\n\nThe lab will support new courses in engineering, biotechnology, and computer science, ensuring Bowman students are well-prepared for the challenges of the 21st century."
+      },
+      {
+        "id": 5,
+        "isFeatured": false,
+        "category": "Opinion",
+        "title": "The Case for a Later School Start Time",
+        "author": "Editorial Board",
+        "date": "Oct 21, 2025",
+        "summary": "Sleep deprivation is an epidemic among teens. It's time for the school board to seriously consider pushing the first bell back to 8:30 a.m.",
+        "image": "https://placehold.co/600x400/EDDDD4/283D3B?text=OPINION",
+        "accentColorClass": "text-bowman-accent",
+        "borderColorClass": "border-bowman-accent/30",
+        "inlineImages": [],
+        "content": "The alarm rings at 6:00 a.m. For many Bowman students, this is the start of another day battling exhaustion. Numerous studies show that teenage brains are wired to stay up later and wake up later. By forcing students to be in class by 7:30 a.m., we are setting them up for failure.\n\nAcademic performance, mental health, and even physical safety (drowsy driving) are all compromised. While logistical challenges exist, the health and well-being of students must be our top priority. We urge the school board to follow the science and implement a later start time.\n\nThis is a long test string to check the text-wrapping feature we added: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    ];
+  }
+
+  function selectArticle(id) {
+    selectedId = id;
+    render();
+  }
+
+  function addArticle() {
+    const id = nextId(articles);
+    const today = formatPrettyDate(new Date());
+    const a = {
+      id,
+      isFeatured: false,
+      category: CATEGORY_OPTIONS[0],
+      title: "Untitled Article",
+      author: "",
+      date: today,
+      summary: "",
+      image: "",
+      accentColorClass: ACCENT_OPTIONS[0],
+      borderColorClass: BORDER_OPTIONS[0],
+      inlineImages: [],
+      content: ""
+    };
+    articles.push(a);
+    selectedId = id;
+    render();
+  }
+
+  function duplicateSelected() {
+    const idx = articles.findIndex(a => a.id === selectedId);
+    if (idx === -1) return;
+    const base = articles[idx];
+    const copy = JSON.parse(JSON.stringify(base));
+    copy.id = nextId(articles);
+    copy.title = copy.title + " (Copy)";
+    articles.push(copy);
+    selectedId = copy.id;
+    render();
+  }
+
+  function deleteSelected() {
+    if (!confirm("Delete this article?")) return;
+    articles = articles.filter(a => a.id !== selectedId);
+    if (!articles.length) {
+      selectedId = null;
+    } else {
+      selectedId = articles[0].id;
+    }
+    render();
+  }
+
+  function moveArticle(id, dir) {
+    const idx = articles.findIndex(a => a.id === id);
+    if (idx === -1) return;
+    const newIdx = idx + dir;
+    if (newIdx < 0 || newIdx >= articles.length) return;
+    const [item] = articles.splice(idx,1);
+    articles.splice(newIdx,0,item);
+    render();
+  }
+
+  function updateField(field, value) {
+    const idx = articles.findIndex(a => a.id === selectedId);
+    if (idx === -1) return;
+    articles[idx][field] = value;
+    renderPreviewOnly();
+  }
+
+  function updateDateFromPicker(rawDate) {
+    // rawDate = "2025-10-27"
+    const pretty = formatPrettyDate(rawDate);
+    updateField("date", pretty);
+  }
+
+  function toggleFeatured(val) {
+    updateField("isFeatured", !!val);
+  }
+
+  function addInlineImage() {
+    const idx = articles.findIndex(a => a.id === selectedId);
+    if (idx === -1) return;
+    articles[idx].inlineImages.push({ url: "", caption: "" });
+    render();
+  }
+
+  function updateInlineImage(index, subfield, value) {
+    const idx = articles.findIndex(a => a.id === selectedId);
+    if (idx === -1) return;
+    articles[idx].inlineImages[index][subfield] = value;
+    renderPreviewOnly();
+  }
+
+  function removeInlineImage(index) {
+    const idx = articles.findIndex(a => a.id === selectedId);
+    if (idx === -1) return;
+    articles[idx].inlineImages.splice(index,1);
+    render();
+  }
+
+  function insertToken(n) {
+    const idx = articles.findIndex(a => a.id === selectedId);
+    if (idx === -1) return;
+    const token = "<image-" + n + ">";
+    articles[idx].content += token;
+    render();
+  }
+
+  function handleContentEdit(val) {
+    updateField("content", val);
+  }
+
+  function getFilteredArticles() {
+    const term = document.getElementById("searchInput").value.trim().toLowerCase();
+    const cat = document.getElementById("filterCategory").value;
+    return articles.filter(a => {
+      let matchSearch = true;
+      if (term) {
+        matchSearch = [a.title,a.author,a.summary,a.category]
+          .some(x => x.toLowerCase().includes(term));
+      }
+      let matchCat = (cat==="ALL") || (a.category===cat);
+      return matchSearch && matchCat;
+    });
+  }
+
+  // --------------------------
+  // Export / Clipboard / Download
+  // --------------------------
+  function copyJSON() {
+    const asPlain = document.getElementById("chkPlain").checked;
+    const payload = JSON.stringify(toExportArray(asPlain), null, 2);
+    navigator.clipboard.writeText(payload).then(() => {
+      alert("JSON copied to clipboard.");
+    });
+  }
+
+  function downloadJSON() {
+    const asPlain = document.getElementById("chkPlain").checked;
+    const payload = JSON.stringify(toExportArray(asPlain), null, 2);
+    const blob = new Blob([payload], {type:"application/json;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "newspaper.json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  // --------------------------
+  // Render helpers
+  // --------------------------
+  function renderArticleList(container) {
+    const list = getFilteredArticles();
+
+    container.innerHTML = "";
+
+    if (!list.length) {
+      container.innerHTML = `
+        <div style="padding:16px;font-size:13px;color:var(--text-dim);text-align:center;">
+          No articles. Click <b>New Article</b> or load example.
+          <br/><br/>
+          <button class="secondary small" id="btnLoadExample">Load Example Data</button>
+        </div>`;
+      const btnLoad = container.querySelector("#btnLoadExample");
+      if (btnLoad) {
+        btnLoad.addEventListener("click", () => {
+          articles = getExampleArticles();
+          selectedId = articles[0].id;
+          render();
+        });
+      }
+      return;
+    }
+
+    list.forEach(a => {
+      const row = document.createElement("div");
+      row.className = "article-row" + (a.id===selectedId ? " active" : "");
+      row.innerHTML = `
+        <div style="font-size:11px;padding-top:2px;">
+          ${a.isFeatured ? "★" : "☆"}
+        </div>
+        <div class="article-meta">
+          <div class="article-title">${escapeHtml(a.title || "Untitled")}</div>
+          <div class="article-line2">${escapeHtml(a.category)} · ${escapeHtml(a.author || "—")}</div>
+          <div class="article-line3">${escapeHtml(a.date || "")}</div>
+        </div>
+        <div class="row-buttons">
+          <button class="secondary small" data-action="up">↑</button>
+          <button class="secondary small" data-action="down">↓</button>
+          <button class="secondary small" data-action="dup">⧉</button>
+          <button class="danger small" data-action="del">✕</button>
+        </div>
+      `;
+      // row click = select unless button click
+      row.addEventListener("click", (e) => {
+        const t = e.target;
+        if (t.tagName === "BUTTON") return;
+        selectArticle(a.id);
+      });
+
+      // buttons
+      row.querySelector('[data-action="up"]').addEventListener("click", (e)=>{
+        e.stopPropagation();
+        moveArticle(a.id, -1);
+      });
+      row.querySelector('[data-action="down"]').addEventListener("click", (e)=>{
+        e.stopPropagation();
+        moveArticle(a.id, 1);
+      });
+      row.querySelector('[data-action="dup"]').addEventListener("click", (e)=>{
+        e.stopPropagation();
+        selectedId = a.id;
+        duplicateSelected();
+      });
+      row.querySelector('[data-action="del"]').addEventListener("click", (e)=>{
+        e.stopPropagation();
+        selectedId = a.id;
+        deleteSelected();
+      });
+
+      container.appendChild(row);
+    });
+  }
+
+  function renderEditor(container) {
+    container.innerHTML = "";
+
+    if (selectedId === null) {
+      document.getElementById("noSelectionNote").style.display = "block";
+      return;
+    }
+    document.getElementById("noSelectionNote").style.display = "none";
+
+    const idx = articles.findIndex(a => a.id === selectedId);
+    if (idx === -1) {
+      container.innerHTML = "<div style='font-size:13px;color:var(--text-dim)'>Select an article to edit.</div>";
+      return;
+    }
+    const a = articles[idx];
+
+    // Build editor HTML
+    const editorHtml = `
+      <div class="field-grid">
+        <div class="field">
+          <label>Title</label>
+          <input type="text" id="f_title" value="${escapeAttr(a.title)}" />
+        </div>
+        <div class="field">
+          <label>Featured</label>
+          <div class="field-row">
+            <input type="checkbox" id="f_isFeatured" ${a.isFeatured ? "checked":""} />
+            <span style="font-size:12px;">Mark as featured</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Category</label>
+          <select id="f_category">
+            ${CATEGORY_OPTIONS.map(opt => `<option ${opt===a.category?"selected":""}>${escapeHtml(opt)}</option>`).join("")}
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Author</label>
+          <input type="text" id="f_author" value="${escapeAttr(a.author)}" />
+        </div>
+
+        <div class="field">
+          <label>Date</label>
+          <div class="field-row">
+            <input type="date" id="f_datePick" />
+            <button class="secondary small" id="btnToday">Today</button>
+            <input type="text" id="f_dateText" value="${escapeAttr(a.date)}" style="flex:1;min-width:120px;" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Hero Image URL</label>
+          <input type="text" id="f_image" value="${escapeAttr(a.image)}" placeholder="https://..." />
+        </div>
+
+        <div class="field">
+          <label>Accent Color Class</label>
+          <input type="text" id="f_accent" value="${escapeAttr(a.accentColorClass)}" list="accentList" />
+          <datalist id="accentList">
+            ${ACCENT_OPTIONS.map(opt => `<option value="${escapeAttr(opt)}"></option>`).join("")}
+          </datalist>
+        </div>
+
+        <div class="field">
+          <label>Border Color Class</label>
+          <input type="text" id="f_border" value="${escapeAttr(a.borderColorClass)}" list="borderList" />
+          <datalist id="borderList">
+            ${BORDER_OPTIONS.map(opt => `<option value="${escapeAttr(opt)}"></option>`).join("")}
+          </datalist>
+        </div>
+      </div>
+
+      <div class="field" style="margin-top:16px;">
+        <label>Summary</label>
+        <textarea id="f_summary">${escapeHtml(a.summary)}</textarea>
+      </div>
+
+      <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+          <label style="font-size:13px;font-weight:500;">Inline Images</label>
+          <button class="secondary small" id="btnAddImage">Add Image</button>
+        </div>
+        <div class="inline-images-block" id="inlineImageList" style="margin-top:12px;"></div>
+      </div>
+
+      <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+          <label style="font-size:13px;font-weight:500;">Article Content</label>
+          <div style="font-size:11px;color:var(--text-dim);">
+            Tip: insert tokens like &lt;image-1&gt; to reference Inline Images.
+          </div>
+        </div>
+        <div class="content-editor" style="margin-top:8px;">
+          <textarea id="f_content">${escapeHtml(a.content)}</textarea>
+        </div>
+      </div>
+
+      <div class="controls-row" style="margin-top:16px;">
+        <button class="secondary small" id="btnInsertToken1">&lt;image-1&gt;</button>
+        <button class="secondary small" id="btnInsertToken2">&lt;image-2&gt;</button>
+        <button class="secondary small" id="btnInsertToken3">&lt;image-3&gt;</button>
+      </div>
+    `;
+
+    container.innerHTML = editorHtml;
+
+    // Inline images render
+    renderInlineImages(
+      container.querySelector("#inlineImageList"),
+      a.inlineImages
+    );
+
+    // attach events
+    container.querySelector("#f_title").addEventListener("input", e=>{
+      updateField("title", e.target.value);
+    });
+    container.querySelector("#f_isFeatured").addEventListener("change", e=>{
+      toggleFeatured(e.target.checked);
+    });
+    container.querySelector("#f_category").addEventListener("change", e=>{
+      updateField("category", e.target.value);
+    });
+    container.querySelector("#f_author").addEventListener("input", e=>{
+      updateField("author", e.target.value);
+    });
+    container.querySelector("#f_image").addEventListener("input", e=>{
+      updateField("image", e.target.value);
+    });
+    container.querySelector("#f_accent").addEventListener("input", e=>{
+      updateField("accentColorClass", e.target.value);
+    });
+    container.querySelector("#f_border").addEventListener("input", e=>{
+      updateField("borderColorClass", e.target.value);
+    });
+    container.querySelector("#f_summary").addEventListener("input", e=>{
+      updateField("summary", e.target.value);
+    });
+    container.querySelector("#f_content").addEventListener("input", e=>{
+      handleContentEdit(e.target.value);
+    });
+    container.querySelector("#f_dateText").addEventListener("input", e=>{
+      updateField("date", e.target.value);
+    });
+    container.querySelector("#f_datePick").addEventListener("change", e=>{
+      updateDateFromPicker(e.target.value);
+      container.querySelector("#f_dateText").value = articles[idx].date;
+    });
+    container.querySelector("#btnToday").addEventListener("click", ()=>{
+      const todayPretty = formatPrettyDate(new Date());
+      updateField("date", todayPretty);
+      container.querySelector("#f_dateText").value = todayPretty;
+    });
+
+    container.querySelector("#btnAddImage").addEventListener("click", ()=>{
+      addInlineImage();
+    });
+
+    container.querySelector("#btnInsertToken1").addEventListener("click", ()=>{
+      insertToken(1);
+    });
+    container.querySelector("#btnInsertToken2").addEventListener("click", ()=>{
+      insertToken(2);
+    });
+    container.querySelector("#btnInsertToken3").addEventListener("click", ()=>{
+      insertToken(3);
+    });
+  }
+
+  function renderInlineImages(container, imgs) {
+    container.innerHTML = "";
+
+    if (!imgs.length) {
+      container.innerHTML = `
+        <div style="font-size:12px;color:var(--text-dim);">
+          No inline images. Click "Add Image" to create one, then insert &lt;image-1&gt; etc. into the content.
+        </div>`;
+      return;
+    }
+
+    imgs.forEach((im, idx) => {
+      const row = document.createElement("div");
+      row.className = "inline-image-row";
+      row.innerHTML = `
+        <div class="field">
+          <label>Image URL (#${idx+1})</label>
+          <input type="text" data-field="url" value="${escapeAttr(im.url)}" placeholder="https://..." />
+        </div>
+        <div class="field">
+          <label>Caption</label>
+          <input type="text" data-field="caption" value="${escapeAttr(im.caption||"")}" />
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;justify-content:flex-start;">
+          <button class="secondary small" data-action="insert">
+            Insert &lt;image-${idx+1}&gt;
+          </button>
+          <button class="danger small" data-action="remove">Delete</button>
+        </div>
+      `;
+      // bind
+      const urlInput = row.querySelector('input[data-field="url"]');
+      const capInput = row.querySelector('input[data-field="caption"]');
+      const btnInsert = row.querySelector('button[data-action="insert"]');
+      const btnRemove = row.querySelector('button[data-action="remove"]');
+
+      urlInput.addEventListener("input", e=>{
+        updateInlineImage(idx, "url", e.target.value);
+      });
+      capInput.addEventListener("input", e=>{
+        updateInlineImage(idx, "caption", e.target.value);
+      });
+      btnInsert.addEventListener("click", ()=>{
+        insertToken(idx+1);
+      });
+      btnRemove.addEventListener("click", ()=>{
+        removeInlineImage(idx);
+      });
+
+      container.appendChild(row);
+    });
+  }
+
+  function renderPreviewOnly() {
+    // Update JSON preview live but don't rebuild the whole UI
+    const previewNode = document.getElementById("jsonPreview");
+    const asPlain = document.getElementById("chkPlain").checked;
+    previewNode.textContent = JSON.stringify(toExportArray(asPlain), null, 2);
+  }
+
+  function render() {
+    const listNode = document.getElementById("articleList");
+    const editorNode = document.getElementById("editorArea");
+    const previewNode = document.getElementById("jsonPreview");
+
+    renderArticleList(listNode);
+    renderEditor(editorNode);
+    const asPlain = document.getElementById("chkPlain").checked;
+    previewNode.textContent = JSON.stringify(toExportArray(asPlain), null, 2);
+  }
+
+  // --------------------------
+  // utils
+  // --------------------------
+  function escapeHtml(str) {
+    if (str == null) return "";
+    return String(str)
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;");
+  }
+  // for inputs' value attributes (must also escape quotes)
+  function escapeAttr(str) {
+    return escapeHtml(str).replace(/"/g,"&quot;");
+  }
+
+  // --------------------------
+  // Wiring up global buttons
+  // --------------------------
+  document.getElementById("btnNew").addEventListener("click", addArticle);
+  document.getElementById("btnDuplicate").addEventListener("click", duplicateSelected);
+  document.getElementById("btnDelete").addEventListener("click", deleteSelected);
+
+  document.getElementById("btnCopyJSON").addEventListener("click", copyJSON);
+  document.getElementById("btnDownloadJSON").addEventListener("click", downloadJSON);
+
+  document.getElementById("chkPlain").addEventListener("change", renderPreviewOnly);
+  document.getElementById("searchInput").addEventListener("input", render);
+  document.getElementById("filterCategory").addEventListener("change", render);
+
+  // Initialize app with example data for convenience
+  articles = getExampleArticles();
+  selectedId = articles[0].id;
+  render();
+})();
+</script>
+
 </body>
 </html>
