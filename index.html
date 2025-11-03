@@ -375,9 +375,6 @@
 
 <script>
 (function () {
-  // --------------------------
-  // Data model + helpers
-  // --------------------------
 
   let articles = [];
   let selectedId = null;
@@ -654,9 +651,6 @@
     });
   }
 
-  // --------------------------
-  // Export / Clipboard / Download
-  // --------------------------
   function copyJSON() {
     const asPlain = document.getElementById("chkPlain").checked;
     const payload = JSON.stringify(toExportArray(asPlain), null, 2);
@@ -679,9 +673,6 @@
     URL.revokeObjectURL(url);
   }
 
-  // --------------------------
-  // Render helpers
-  // --------------------------
   function renderArticleList(container) {
     const list = getFilteredArticles();
 
@@ -995,10 +986,6 @@
     const asPlain = document.getElementById("chkPlain").checked;
     previewNode.textContent = JSON.stringify(toExportArray(asPlain), null, 2);
   }
-
-  // --------------------------
-  // utils
-  // --------------------------
   function escapeHtml(str) {
     if (str == null) return "";
     return String(str)
@@ -1012,9 +999,6 @@
     return escapeHtml(str).replace(/"/g,"&quot;");
   }
 
-  // --------------------------
-  // Wiring up global buttons
-  // --------------------------
   document.getElementById("btnNew").addEventListener("click", addArticle);
   document.getElementById("btnDuplicate").addEventListener("click", duplicateSelected);
   document.getElementById("btnDelete").addEventListener("click", deleteSelected);
@@ -1026,7 +1010,6 @@
   document.getElementById("searchInput").addEventListener("input", render);
   document.getElementById("filterCategory").addEventListener("change", render);
 
-  // Initialize app with example data for convenience
   articles = getExampleArticles();
   selectedId = articles[0].id;
   render();
